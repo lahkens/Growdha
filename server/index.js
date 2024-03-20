@@ -17,14 +17,23 @@ import {kpis, products, transactions} from "./data/data.js";
 // CONFIGURATIONS
 dotenv.config();
 const app = express();
-app.use(express.json());
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+
+// middleware
+const corsOptions = {
+    origin: "https://growdha-website.onrender.com/",
+}
+
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({policy: "cross-origin"}));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(cors());
-
+app.use(express.json());
+app.use(cors(corsOptions));
 
 //ROUTES
 app.use("/kpi", kpiRoutes);
