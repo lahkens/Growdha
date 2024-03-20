@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 function App() {
 
-    const [message, setMessage] = useState("");
+    const [, setMessage] = useState("");
 
     useEffect(() => {
       fetch("https://growdha.onrender.com")
