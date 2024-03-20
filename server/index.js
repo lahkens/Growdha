@@ -15,16 +15,25 @@ import {kpis, products, transactions} from "./data/data.js";
 
 
 // CONFIGURATIONS
-dotenv.config();
+const express = require("express");
+const mongoose = require("mongoose");
 const app = express();
+const cors = require("cors");
+dotenv.config();
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({policy: "cross-origin"}));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(cors());
+// app.use(cors());
 
+
+//middleware
+const corsOptions = {
+    origin: "https://growdha-website.onrender.com/",
+}
+app.use(cors(corsOptions));
 
 //ROUTES
 app.use("/kpi", kpiRoutes);
@@ -47,4 +56,9 @@ mongoose
 
   })
   .catch((error) => console.log(`${error} did not connect`))
+
+  //Backend route
+app.get("/", (req, res) => {
+    res.status(201).json({message: "Connected to Backend!"});
+});
 
