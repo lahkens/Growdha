@@ -3,3 +3,4 @@
 
 ### Demo
 https://growdha-website.onrender.com/
+(P.S. : Data takes anywhere between 20-40 seconds to render)
