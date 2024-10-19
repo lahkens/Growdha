@@ -40,7 +40,7 @@ const Predictions = () => {
         <FlexBetween m="1rem 2.5rem" gap="1rem">
             <Box>
                 <Typography variant="h3">Revenue and Predictions</Typography>
-                <Typography variant="h6">charted revenue and predicted revenue based on a simple linear regression model</Typography>
+                <Typography variant="h6">charted revenue and predicted revenue based on a regression model</Typography>
             </Box>
             <Button 
                onClick={() => setIsPredictions(!isPredictions)}
