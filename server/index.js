@@ -8,7 +8,7 @@ import morgan from "morgan";
 import kpiRoutes from "./routes/kpi.js";
 import productRoutes from "./routes/product.js";
 import transactionRoutes from "./routes/transaction.js";
-import uploadRoutes from "./routes/upload.js"; // <-- Import your new upload route
+import uploadRoutes from "./routes/upload.js"; // Import your new upload route
 import Product from "./models/Product.js";
 import KPI from "./models/KPI.js";
 import Transaction from "./models/Transaction.js";
@@ -19,14 +19,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(helmet());
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // CORS Configuration
 const allowedOrigins = [
-  "https://growdha-website.onrender.com/", // Replace with your actual frontend URL
+  "https://growdha-website.onrender.com", // Correct the URL (remove the trailing slash)
   "http://localhost:3000", // Allow local development
   // Add more origins as needed
 ];
