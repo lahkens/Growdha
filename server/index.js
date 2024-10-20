@@ -23,6 +23,7 @@ app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
 // CORS Configuration
 const allowedOrigins = [
   "https://growdha-website.onrender.com", // Correct the URL (remove the trailing slash)
