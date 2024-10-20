@@ -1,17 +1,12 @@
-import fs from 'fs';
-import csv from 'csv-parser'; 
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { Readable } from 'stream';
+import csv from 'csv-parser';
 
-// Resolve __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Helper function to read CSV data
-function readCSV(filePath) {
+// Helper function to parse CSV from buffer
+function parseCSVFromBuffer(buffer) {
   return new Promise((resolve, reject) => {
     const results = [];
-    fs.createReadStream(filePath)
+    const stream = Readable.from(buffer.toString('utf-8').split('\n')); // Create a readable stream from the buffer
+    stream
       .pipe(csv())
       .on('data', (data) => results.push(data))
       .on('end', () => resolve(results))
@@ -19,60 +14,26 @@ function readCSV(filePath) {
   });
 }
 
-// Convert CSV data to JSON format
+
+// Convert transaction CSV buffer to JSON
+// Convert transaction CSV buffer to JSON
 function convertTransactionsToJson(transactions) {
-  return transactions.map(transaction => {
-    return {
+    return transactions.map(transaction => ({
       _id: transaction._id,
       amount: transaction.amount,
       buyer: transaction.buyer,
-      productIds: transaction.productIds.split(', ').map(id => id.trim()),
-    };
-  });
-}
-
-// Function to convert JSON to a string in the desired format
-function convertToJsObject(transactions) {
-  let output = 'export const transactions = [\n';
-  
-  transactions.forEach(transaction => {
-    output += `  {\n`;
-    output += `    _id: "${transaction._id}",\n`;
-    output += `    amount: "${transaction.amount}",\n`;
-    output += `    buyer: "${transaction.buyer}",\n`;
-    output += `    productIds: [\n`;
-    transaction.productIds.forEach(id => {
-      output += `      "${id}",\n`;
-    });
-    output += `    ],\n`;
-    output += `  },\n`;
-  });
-
-  output += '];\n';
-  return output;
-}
-
-// Function to read transactions CSV, convert to JSON, and append to data1.js
-async function loadTransactionsFromCSV() {
-  try {
-    const rawDataPath = path.join(__dirname, '../rawData');
-    
-    // Read the transactions CSV file
-    const transactionsData = await readCSV(path.join(rawDataPath, 'transactions.csv'));
-    
-    // Convert to JSON format
-    const transactionsJson = convertTransactionsToJson(transactionsData);
-
-    // Convert JSON to the desired string format
-    const output = convertToJsObject(transactionsJson);
-
-    // Append to data1.js
-    await fs.promises.appendFile(path.join(rawDataPath, 'data1.js'), output);
-    console.log('data1.js has been updated with new transactions array.');
-  } catch (error) {
-    console.error('Error loading transactions from CSV:', error);
+      productIds: transaction.productIds.split(', ').map(id => id.trim()), // Array of product IDs
+    }));
   }
-}
-
-// Run the load process
-loadTransactionsFromCSV();
+  
+  // Function to process transaction CSV buffer
+  export async function parseTransactions(transactionBuffer) {
+    try {
+      const transactionsData = await parseCSVFromBuffer(transactionBuffer);
+      const transactionsJson = convertTransactionsToJson(transactionsData);
+      return transactionsJson; // Return the array of objects directly
+    } catch (error) {
+      console.error('Error processing transaction data:', error);
+    }
+  }
+  

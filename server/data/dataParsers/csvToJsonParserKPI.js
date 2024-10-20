@@ -1,118 +1,89 @@
-import fs from 'fs';
-import csv from 'csv-parser'; 
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { Readable } from 'stream';
+import csv from 'csv-parser';
 
-// Resolve __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Helper function to read CSV data from rawData directory
-function readCSV(filePath) {
+// Helper function to parse CSV from buffer
+function parseCSVFromBuffer(buffer) {
   return new Promise((resolve, reject) => {
     const results = [];
-    fs.createReadStream(filePath)
+    const stream = Readable.from(buffer.toString('utf-8').split('\n')); // Create a readable stream from the buffer
+    stream
       .pipe(csv())
       .on('data', (data) => results.push(data))
       .on('end', () => resolve(results))
       .on('error', reject);
   });
 }
-
-// Manually construct string for JavaScript object instead of JSON.stringify
-function convertToJsObject(kpis) {
-  let output = 'export const kpis = [\n';
-  
-  kpis.forEach(kpi => {
-    output += `  {\n`;
-    output += `    _id: "${kpi._id}",\n`;
-    output += `    totalProfit: "${kpi.totalProfit}",\n`;
-    output += `    totalRevenue: "${kpi.totalRevenue}",\n`;
-    output += `    totalExpenses: "${kpi.totalExpenses}",\n`;
-    
-    output += `    monthlyData: [\n`;
-    kpi.monthlyData.forEach(monthly => {
-      output += `      { month: "${monthly.month}", revenue: "${monthly.revenue}", expenses: "${monthly.expenses}", operationalExpenses: "${monthly.operationalExpenses}", nonOperationalExpenses: "${monthly.nonOperationalExpenses}" },\n`;
-    });
-    output += `    ],\n`;
-
-    output += `    dailyData: [\n`;
-    kpi.dailyData.forEach(daily => {
-      output += `      { date: "${daily.date}", revenue: "${daily.revenue}", expenses: "${daily.expenses}" },\n`;
-    });
-    output += `    ],\n`;
-
-    output += `    expensesByCategory: {\n`;
-    output += `      salaries: "${kpi.expensesByCategory.salaries}",\n`;
-    output += `      supplies: "${kpi.expensesByCategory.supplies}",\n`;
-    output += `      services: "${kpi.expensesByCategory.services}"\n`;
-    output += `    }\n`;
-
-    output += `  },\n`;
-  });
-
-  output += '];\n';
-  return output;
-}
-
-// Function to convert CSV data back to `kpis` structure and write to file
-async function combineAndConvertData() {
-  try {
-    const rawDataPath = path.join(__dirname, '../rawData');
-
-    const overview = await readCSV(path.join(rawDataPath, 'overview.csv'));
-    const monthlyData = await readCSV(path.join(rawDataPath, 'monthlyData.csv'));
-    const dailyData = await readCSV(path.join(rawDataPath, 'dailyData.csv'));
-
-    const kpis = overview.map(overviewEntry => {
-      const _id = overviewEntry._id;
-
-      // Collect all monthly data related to this _id
-      const monthlyEntries = monthlyData
-        .filter(monthlyEntry => monthlyEntry._id === _id)
-        .map(monthlyEntry => ({
-          month: monthlyEntry.month,
-          revenue: String(monthlyEntry.monthlyRevenue),
-          expenses: String(monthlyEntry.monthlyExpenses),
-          operationalExpenses: String(monthlyEntry.operationalExpenses),
-          nonOperationalExpenses: String(monthlyEntry.nonOperationalExpenses)
-        }));
-
-      // Collect all daily data related to this _id
-      const dailyEntries = dailyData
-        .filter(dailyEntry => dailyEntry._id === _id)
-        .map(dailyEntry => ({
-          date: dailyEntry.date,
-          revenue: String(dailyEntry.dailyRevenue),
-          expenses: String(dailyEntry.dailyExpenses)
-        }));
-
-      // Build the kpi object
-      return {
-        _id: _id,
-        totalProfit: String(overviewEntry.totalProfit),
-        totalRevenue: String(overviewEntry.totalRevenue),
-        totalExpenses: String(overviewEntry.totalExpenses),
-        monthlyData: monthlyEntries,
-        dailyData: dailyEntries,
-        expensesByCategory: {
-          salaries: String(overviewEntry.salaries),
-          supplies: String(overviewEntry.supplies),
-          services: String(overviewEntry.services)
-        }
-      };
-    });
-
-    // Convert the `kpis` array to manually formatted JS object string
-    const output = convertToJsObject(kpis);
-    
-    // Use fs.promises.appendFile to append to the file
-    await fs.promises.appendFile(path.join(rawDataPath, 'data1.js'), output);
-    console.log('data1.js has been updated with new kpis array.');
-  } catch (error) {
-    console.error('Error combining CSV data:', error);
+// Convert KPI CSV buffer to JS object
+function convertKPIToJsObject(kpis) {
+    return kpis.map(kpi => ({
+      _id: kpi._id,
+      totalProfit: kpi.totalProfit,
+      totalRevenue: kpi.totalRevenue,
+      totalExpenses: kpi.totalExpenses,
+      monthlyData: kpi.monthlyData.map(monthly => ({
+        month: monthly.month,
+        revenue: monthly.revenue,
+        expenses: monthly.expenses,
+        operationalExpenses: monthly.operationalExpenses,
+        nonOperationalExpenses: monthly.nonOperationalExpenses
+      })),
+      dailyData: kpi.dailyData.map(daily => ({
+        date: daily.date,
+        revenue: daily.revenue,
+        expenses: daily.expenses
+      })),
+      expensesByCategory: {
+        salaries: kpi.expensesByCategory.salaries,
+        supplies: kpi.expensesByCategory.supplies,
+        services: kpi.expensesByCategory.services
+      }
+    }));
   }
-}
-
-// Run the combine and convert process
-combineAndConvertData();
+  
+  // Function to process CSV buffers and combine KPI data
+  export async function parseKPI(kpiBuffer, dailyDataBuffer, monthlyDataBuffer) {
+    try {
+      const overview = await parseCSVFromBuffer(kpiBuffer);
+      const dailyData = await parseCSVFromBuffer(dailyDataBuffer);
+      const monthlyData = await parseCSVFromBuffer(monthlyDataBuffer);
+  
+      const kpis = overview.map(overviewEntry => {
+        const _id = overviewEntry._id;
+  
+        const monthlyEntries = monthlyData.filter(monthly => monthly._id === _id)
+          .map(monthly => ({
+            month: monthly.month,
+            revenue: String(monthly.monthlyRevenue),
+            expenses: String(monthly.monthlyExpenses),
+            operationalExpenses: String(monthly.operationalExpenses),
+            nonOperationalExpenses: String(monthly.nonOperationalExpenses)
+          }));
+  
+        const dailyEntries = dailyData.filter(daily => daily._id === _id)
+          .map(daily => ({
+            date: daily.date,
+            revenue: String(daily.dailyRevenue),
+            expenses: String(daily.dailyExpenses)
+          }));
+  
+        return {
+          _id: _id,
+          totalProfit: String(overviewEntry.totalProfit),
+          totalRevenue: String(overviewEntry.totalRevenue),
+          totalExpenses: String(overviewEntry.totalExpenses),
+          monthlyData: monthlyEntries,
+          dailyData: dailyEntries,
+          expensesByCategory: {
+            salaries: String(overviewEntry.salaries),
+            supplies: String(overviewEntry.supplies),
+            services: String(overviewEntry.services)
+          }
+        };
+      });
+  
+      return kpis; // Return the array of objects directly
+    } catch (error) {
+      console.error('Error processing KPI data:', error);
+    }
+  }
+  

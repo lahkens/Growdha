@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Navbar from "./scenes/navbar"
 import Dashboard from "@/scenes/dashboard";
 import Predictions from "@/scenes/predictions";
+import Upload from "./scenes/upload/index";
 import { useEffect, useState } from "react";
 
 function App() {
@@ -32,6 +33,8 @@ function App() {
                           element={<Dashboard></Dashboard>}/>
                    <Route path="/predictions"
                           element={<Predictions></Predictions>}/>
+                    <Route path="/upload" 
+                          element={<Upload></Upload>}/>
 
                 </Routes>
 

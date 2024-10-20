@@ -20,6 +20,18 @@ const Navbar = (props: Props) => {
             </FlexBetween>
             {/* RIGHT SIDE */}
             <FlexBetween gap="2rem">
+                      <Box sx={{ "&:hover": {color: palette.primary[100]}}}>
+                          <Link
+                            to="/upload"
+                            onClick={()=>setSelected("predictions")}
+                            style={{
+                               color: selected === "predictions"? "inherit": palette.grey[100],
+                               textDecoration: "inherit"
+                            }}
+                          >
+                              Upload
+                          </Link>
+                      </Box>
                 <Box sx={{ "&:hover": {color: palette.primary[100]}}}>
                     <Link
                       to="/"
