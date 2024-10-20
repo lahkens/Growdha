@@ -23,7 +23,19 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
+
+// CORS Configuration
+const allowedOrigins = [
+  "https://growdha-website.onrender.com/", // Replace with your actual frontend URL
+  "http://localhost:3000", // Allow local development
+  // Add more origins as needed
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Specify the allowed HTTP methods
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
 
 // ROUTES
 app.use("/kpi", kpiRoutes);
