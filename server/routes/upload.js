@@ -58,6 +58,8 @@ router.post(
       const kpiData = await parseKPI(kpiBuffer.toString('utf-8'), dailyDataBuffer.toString('utf-8'), monthlyDataBuffer.toString('utf-8'));
       const productData = await parseProducts(productBuffer.toString('utf-8'));
       const transactionData = await parseTransactions(transactionBuffer.toString('utf-8'));
+    //   console.log(transactionData);
+      
 
       // Validate data structure before inserting
       if (!kpiData || !productData || !transactionData) {

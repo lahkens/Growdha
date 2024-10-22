@@ -1,5 +1,6 @@
+import { Readable } from 'stream';
+import csv from 'csv-parser';
 import fs from 'fs';
-import csv from 'csv-parser'; 
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,7 +8,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper function to read CSV data from rawData directory
+// Helper function to read CSV from file path
 function readCSV(filePath) {
   return new Promise((resolve, reject) => {
     const results = [];
@@ -19,89 +20,37 @@ function readCSV(filePath) {
   });
 }
 
-// Function to convert CSV data back to `kpis` structure and write to file
-async function combineAndConvertData() {
+// Convert transaction CSV data to JSON
+function convertTransactionsToJson(transactions) {
+  return transactions.map(transaction => ({
+    _id: transaction._id,
+    amount: transaction.amount,
+    buyer: transaction.buyer,
+    productIds: transaction.productIds.split(', ').map(id => id.trim()), // Array of product IDs
+  }));
+}
+
+// Function to process CSV file and write to data1.js
+export async function parseTransactions() {
   try {
-    const rawDataPath = path.join(__dirname, '../rawData');
+    const rawDataPath = path.join(__dirname, '../rawData'); // Adjust the path as needed
+    const transactions = await readCSV(path.join(rawDataPath, 'transactions.csv'));
 
-    const overview = await readCSV(path.join(rawDataPath, 'overview.csv'));
-    const monthlyData = await readCSV(path.join(rawDataPath, 'monthlyData.csv'));
-    const dailyData = await readCSV(path.join(rawDataPath, 'dailyData.csv'));
+    const transactionsJson = convertTransactionsToJson(transactions);
 
-    const kpis = overview.map(overviewEntry => {
-      const _id = overviewEntry._id;
+    // Convert the transactionsJson to a JavaScript file content string
+    const output = `export const transactions = ${JSON.stringify(transactionsJson, null, 2)};\n`;
 
-      // Collect all monthly data related to this _id
-      const monthlyEntries = monthlyData
-        .filter(monthlyEntry => monthlyEntry._id === _id)
-        .map(monthlyEntry => ({
-          month: monthlyEntry.month,
-          revenue: String(monthlyEntry.monthlyRevenue),
-          expenses: String(monthlyEntry.monthlyExpenses),
-          operationalExpenses: String(monthlyEntry.operationalExpenses),
-          nonOperationalExpenses: String(monthlyEntry.nonOperationalExpenses)
-        }));
+    // Write to data1.js
+    const outputPath = path.join(rawDataPath, 'data1.js');
+    await fs.promises.appendFile(outputPath, output);
+    console.log('data1.js has been updated with new transactions array.');
 
-      // Collect all daily data related to this _id
-      const dailyEntries = dailyData
-        .filter(dailyEntry => dailyEntry._id === _id)
-        .map(dailyEntry => ({
-          date: dailyEntry.date,
-          revenue: String(dailyEntry.dailyRevenue),
-          expenses: String(dailyEntry.dailyExpenses)
-        }));
-
-      // Build the kpi object
-      return {
-        _id: _id,
-        totalProfit: String(overviewEntry.totalProfit),
-        totalRevenue: String(overviewEntry.totalRevenue),
-        totalExpenses: String(overviewEntry.totalExpenses),
-        monthlyData: monthlyEntries,
-        dailyData: dailyEntries,
-        expensesByCategory: {
-          salaries: String(overviewEntry.salaries),
-          supplies: String(overviewEntry.supplies),
-          services: String(overviewEntry.services)
-        }
-      };
-    });
-
-    // Create kpiData using the structured mapping
-    const kpiData = kpis.map(kpi => ({
-      _id: kpi._id,
-      totalProfit: kpi.totalProfit,
-      totalRevenue: kpi.totalRevenue,
-      totalExpenses: kpi.totalExpenses,
-      monthlyData: kpi.monthlyData.map(monthly => ({
-        month: monthly.month,
-        revenue: monthly.revenue,
-        expenses: monthly.expenses,
-        operationalExpenses: monthly.operationalExpenses,
-        nonOperationalExpenses: monthly.nonOperationalExpenses
-      })),
-      dailyData: kpi.dailyData.map(daily => ({
-        date: daily.date,
-        revenue: daily.revenue,
-        expenses: daily.expenses
-      })),
-      expensesByCategory: {
-        salaries: kpi.expensesByCategory.salaries,
-        supplies: kpi.expensesByCategory.supplies,
-        services: kpi.expensesByCategory.services
-      }
-    }));
-
-    // Convert kpiData to JSON string format
-    const output = `export const kpis = ${JSON.stringify(kpiData, null, 2)};\n`;
-
-    // Use fs.promises.appendFile to append to the file
-    await fs.promises.appendFile(path.join(rawDataPath, 'data1.js'), output);
-    console.log('data1.js has been updated with new kpis array.');
+    return transactionsJson;
   } catch (error) {
-    console.error('Error combining CSV data:', error);
+    console.error('Error processing transaction data:', error);
   }
 }
 
-// Run the combine and convert process
-combineAndConvertData();
+// Run the function to process the transactions CSV and write to data1.js
+parseTransactions();

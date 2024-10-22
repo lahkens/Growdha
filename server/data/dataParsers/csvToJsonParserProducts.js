@@ -8,7 +8,7 @@ function parseCSVFromBuffer(buffer) {
     const stream = Readable.from(buffer.toString('utf-8').split('\n')); // Create a readable stream from the buffer
     stream
       .pipe(csv())
-      .on('data', (data) => results.push(data))
+      .on('data', (data) => {results.push(data)})
       .on('end', () => resolve(results))
       .on('error', reject);
   });
@@ -27,6 +27,8 @@ function convertProductsToJson(products) {
   export async function parseProducts(productBuffer) {
     try {
       const productsData = await parseCSVFromBuffer(productBuffer);
+    //   console.log(productsData);
+      
       const productsJson = convertProductsToJson(productsData);
       return productsJson; // Return the array of objects directly
     } catch (error) {

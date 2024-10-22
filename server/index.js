@@ -28,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const allowedOrigins = [
   "https://growdha-website.onrender.com", // Correct the URL (remove the trailing slash)
   "http://localhost:3000", // Allow local development
+  "http://localhost:5173",
   // Add more origins as needed
 ];
 
@@ -51,7 +52,7 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on Port: ${PORT}`));
       
     // Uncomment if you want to seed the data initially
-    // await mongoose.connection.db.dropDatabase();
+    await mongoose.connection.db.dropDatabase();
     // KPI.insertMany(kpis);
     // Product.insertMany(products);
     // Transaction.insertMany(transactions);
