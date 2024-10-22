@@ -7,6 +7,7 @@ import {
   Snackbar,
   Alert,
   Grid,
+  CircularProgress,
   useTheme,
 } from "@mui/material";
 
@@ -30,6 +31,7 @@ const Upload = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state for the animation
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -55,6 +57,8 @@ const Upload = () => {
       return;
     }
 
+    setIsLoading(true); // Set loading state to true before upload
+
     const formData = new FormData();
     formData.append("kpiFile", files.kpiFile);
     formData.append("productFile", files.productFile);
@@ -70,10 +74,11 @@ const Upload = () => {
       });
       console.log("Response from server:", response.data); // Log the response
       setSnackbarMessage("Files uploaded successfully!");
-      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error uploading files", error);
       setSnackbarMessage("There was an error uploading the files. Please try again.");
+    } finally {
+      setIsLoading(false); // Stop loading animation after upload
       setSnackbarOpen(true);
     }
   };
@@ -132,18 +137,26 @@ const Upload = () => {
             </Grid>
           ))}
         </Grid>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ marginTop: 2 }}
-        >
-          Upload and Submit
-        </Button>
+
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+            <CircularProgress sx={{ color: theme.palette.primary.main }} /> {/* Loading animation */}
+          </Box>
+        ) : (
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ marginTop: 2 }}
+          >
+            Upload and Submit
+          </Button>
+        )}
       </form>
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarMessage.includes("error") ? "error" : "success"} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
