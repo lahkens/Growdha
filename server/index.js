@@ -52,7 +52,7 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on Port: ${PORT}`));
       
     // Uncomment if you want to seed the data initially
-    await mongoose.connection.db.dropDatabase();
+    // await mongoose.connection.db.dropDatabase();
     // KPI.insertMany(kpis);
     // Product.insertMany(products);
     // Transaction.insertMany(transactions);
