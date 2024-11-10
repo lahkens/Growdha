@@ -20,7 +20,7 @@ type FileUpload = {
 };
 
 const Upload = () => {
-  const theme = useTheme(); // Get the theme directly
+  const theme = useTheme();
   const [files, setFiles] = useState<FileUpload>({
     kpiFile: null,
     productFile: null,
@@ -31,11 +31,11 @@ const Upload = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Loading state for the animation
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: keyof FileUpload // Ensure this is typed correctly
+    type: keyof FileUpload
   ) => {
     if (e.target.files && e.target.files.length > 0) {
       setFiles((prevFiles) => ({
@@ -45,19 +45,24 @@ const Upload = () => {
     }
   };
 
-  const apiUrl = import.meta.env.VITE_BASE_URL; // Use Vite's method to access env variables
+  const apiUrl = import.meta.env.VITE_BASE_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if all 5 files are uploaded
-    if (!files.kpiFile || !files.productFile || !files.transactionFile || !files.dailyDataFile || !files.monthlyDataFile) {
+    if (
+      !files.kpiFile ||
+      !files.productFile ||
+      !files.transactionFile ||
+      !files.dailyDataFile ||
+      !files.monthlyDataFile
+    ) {
       setSnackbarMessage("Please upload all required files.");
       setSnackbarOpen(true);
       return;
     }
 
-    setIsLoading(true); // Set loading state to true before upload
+    setIsLoading(true);
 
     const formData = new FormData();
     formData.append("kpiFile", files.kpiFile);
@@ -72,13 +77,13 @@ const Upload = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Response from server:", response.data); // Log the response
+      console.log("Response from server:", response.data);
       setSnackbarMessage("Files uploaded successfully!");
     } catch (error) {
       console.error("Error uploading files", error);
       setSnackbarMessage("There was an error uploading the files. Please try again.");
     } finally {
-      setIsLoading(false); // Stop loading animation after upload
+      setIsLoading(false);
       setSnackbarOpen(true);
     }
   };
@@ -91,15 +96,15 @@ const Upload = () => {
     <Box
       sx={{
         padding: 4,
-        backgroundColor: theme.palette.background.default, // Use the background color from the theme
+        backgroundColor: theme.palette.background.default,
         borderRadius: 2,
       }}
     >
-      <Typography variant="h4" align="center" gutterBottom color="primary.main">
+      <Typography variant="h4" align="center" gutterBottom color="primary.main" marginBottom={"2%"}>
         Upload CSV Files
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}> {/* Increased spacing to add more padding around grid items */}
           {[
             { label: "KPI CSV", key: "kpiFile" },
             { label: "Product CSV", key: "productFile" },
@@ -107,7 +112,7 @@ const Upload = () => {
             { label: "Daily Data CSV", key: "dailyDataFile" },
             { label: "Monthly Data CSV", key: "monthlyDataFile" },
           ].map(({ label, key }) => (
-            <Grid item xs={12} sm={6} key={key}>
+            <Grid item xs={12} sm={4} key={key}>
               <Button
                 variant="outlined"
                 component="label"
@@ -115,7 +120,7 @@ const Upload = () => {
                 sx={{
                   color: theme.palette.primary.main,
                   borderColor: theme.palette.primary.main,
-                  '&:hover': {
+                  "&:hover": {
                     borderColor: theme.palette.primary.light,
                     color: theme.palette.primary.light,
                   },
@@ -125,12 +130,15 @@ const Upload = () => {
                 <input
                   type="file"
                   accept=".csv"
-                  onChange={(e) => handleFileChange(e, key as keyof FileUpload)} // Use type assertion here
+                  onChange={(e) => handleFileChange(e, key as keyof FileUpload)}
                   hidden
                 />
               </Button>
               {files[key as keyof FileUpload] && (
-                <Typography variant="body2" sx={{ marginTop: 1, color: theme.palette.grey[200] }}>
+                <Typography
+                  variant="body2"
+                  sx={{ marginTop: 1, color: theme.palette.grey[200] }}
+                >
                   {files[key as keyof FileUpload]?.name}
                 </Typography>
               )}
@@ -139,24 +147,29 @@ const Upload = () => {
         </Grid>
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-            <CircularProgress sx={{ color: theme.palette.primary.main }} /> {/* Loading animation */}
+          <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
+            <CircularProgress sx={{ color: theme.palette.primary.main }} />
           </Box>
         ) : (
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ marginTop: 2 }}
-          >
-            Upload and Submit
-          </Button>
+          <Box sx={{ display: "flex", justifyContent: "center", marginTop: 3 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ width: "40%" }}
+            >
+              Upload and Submit
+            </Button>
+          </Box>
         )}
       </form>
 
       <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarMessage.includes("error") ? "error" : "success"} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarMessage.includes("error") ? "error" : "success"}
+          sx={{ width: "100%" }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>
