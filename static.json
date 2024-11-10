@@ -1,0 +1,17 @@
+{
+    "rewrites": [
+      {
+        "source": "/upload",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/predictions",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/*",
+        "destination": "/index.html"
+      }
+    ]
+  }
+  
