@@ -14,7 +14,7 @@ function App() {
     const [, setMessage] = useState("");
 
     useEffect(() => {
-      fetch("https://growdha.onrender.com")
+      fetch("https://appsail-50023410479.development.catalystappsail.in")
         .then((res) => res.json())
         .then((data) => setMessage(data.message));
     },[]);
